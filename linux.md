@@ -444,6 +444,8 @@ less指令用来分屏查看文件内容,它的功能与more指令类似,但是�
 
 #### 3.搜索查找类
 
+**如果与目录有关的操作,需要加上`-r`来进行操作**
+
 ##### 1.find指令
 
 `find [搜索范围] [选项]`:	将从指定目录项下递归的遍历其各个目录,将满足条件的文件或目录显示在终端
@@ -478,7 +480,7 @@ locate指令可以快速定位文件路径,locate指令利用事先建立的系�
 
 `which 指令`:	查看某个指令所在的目录位置
 
-##### 4.grep指令和管道指令
+##### 4.grep指令和管道指令(查找)
 
 grep过滤查找,管道符"|",表示将前一个命令的输出结果传递给后边的命令进行处理
 
@@ -547,6 +549,9 @@ tar指令是打包指令,最后打包的文件是.tar.gz的文件
 `tar -zcvf mydierzhou.tar.gz  dierzhou`
 
 `tar -zxvf mydierzhou.tar.gz `
+
+- **tar在打包时，如果打包目标是绝对路径时会出现警告`tar: 从成员名中删除开头的“/”`根本原因是因为打包时会把目录结构打进去，解包时也会把对应的目录结构解出来**
+- **通常建议相对路径打包，先cd到目标所在目录**
 
 ---
 
@@ -1760,18 +1765,27 @@ $0~n表示第一个到第n个参数,n大于10,第10个参数就要用\${10}表�
 ```bash
 if [ 条件判断式 ]
 then
-	...;
+	...
 fi
 ```
 
 ###### 2.多分支
 
 ```bash
-if [条件判断式]
+if [ 条件判断式 ]
 then
-	...;
-elif [条件判断式]
-	...;
+	...
+elif [ 条件判断式 ]
+	...
+fi
+```
+
+```bash
+if [ 条件判断式 ]
+then
+	...
+else
+	...
 fi
 ```
 
@@ -2333,14 +2347,18 @@ bt default #获取bt信息
    #cut -d '/' -f 3 以/为分隔符对数据进行分割,并取第3个子字符
    #sort 进行从大到小排序, sort -nr 进行从小到大排序
    #awk -F " " '{print $5}' 以空格为分隔符进行分割,并取第5个
+   #awk $0 表示取整个部分
    ```
+
+---
 
 2.统计连接到服务器的各个IP情况,并按连接数从大到小进行排序
 
    ```bash
-   netstat -an | grep ESTABLISHED | awk -F " " '{print $5}' | cut -d ":" -f 1 | sort | uniq -c | 
-   sort -nr
+   netstat -an | grep ESTABLISHED | awk -F " " '{print $5}' | cut -d ":" -f 1 | sort | uniq -c | sort -nr
    ```
+
+---
 
 3.统计ip访问情况,分析访问日志(access.log),找出访问页面数量在前两位的ip
 
@@ -2358,11 +2376,15 @@ bt default #获取bt信息
    cat access.log | awk -F " " '{print $1}' | sort | uniq -c | sort -nr | head -2
    ```
 
+---
+
 4.使用tcpdump监听本机,将来自192.168.200.1,tcp端口为22的数据,保存输出到tcpdump.log,用来做数据分析
 
    ```bash
    tcpdump -i ens33 host 192.168.200.1 and port 22 >> /opt/interview/tcpdump.log
    ```
+
+---
 
 5.进行系统权限划分时,应该注意哪些因素?
 
@@ -2408,9 +2430,13 @@ bt default #获取bt信息
 
 4.tom用户对目录/home/test有wx的权限,/home/test/hello.java只是可读文件,问tom对hello.java能读(OK)?能写?(OK),能删除(OK)
 
+---
+
 4.列举Linux高级命令
 
 netstat网络状态监控,top系统运行状态,ps -aux查看运行进程,chkconfig查看服务运行级别的自启动状态,systemctl管理系统服务器
+
+---
 
 5.Linux查看内存,io读写,磁盘存储,端口占用,进程查看命令
 
@@ -2423,6 +2449,8 @@ netstat网络状态监控,top系统运行状态,ps -aux查看运行进程,chkcon
 端口占用:	netstat -tunlp
 
 进程查看命令:	ps -aux
+
+---
 
 6.使用linux命令计算t2.txt第二列的和并输出
 
@@ -2437,3 +2465,79 @@ netstat网络状态监控,top系统运行状态,ps -aux查看运行进程,chkcon
  #'{sum+=$2} END {print sum}':	把$2的值加到sum中,END结束,在j
 ```
 
+---
+
+7.shell脚本里如何检查一个文件是否存在?并给出提示
+
+```bash
+if [ -f 文件名 ]
+then 
+echo "存在"
+else
+echo "不存在"
+fi
+```
+
+---
+
+8.用shell写一个脚本,对文本t3.txt中无序的一列数字排序,并将总和输出
+
+```bash
+sort t3.txt | awk '{sum+=$1;count+=1;print $1} END {print "一共有"count"个数";print "和为"sum}'
+```
+
+---
+
+9.使用指令查找当前文件夹(/home)下的所有文本文件内容中含有字符"cat"的文件名称
+
+```bash
+grep -r "cat" /home | cut -d ":" -f 1
+```
+
+10.请写出统计/home目录下所有文件个数和所有文件总行数的指令
+
+```bash
+find /home -name "*.*" | xargs wc -l
+#xargs:	统计每个文件行数
+#wc:	统计文件个数
+```
+
+11.web服务器负载架构
+
+Nginx
+
+Haproxy
+
+Keepalived
+
+LVS:	用做负载均衡
+
+12.每天晚上10点30分,打包站点目录/var/spool/mail备份到/home目录下(每次备份按时间生成不同的备份包)
+
+脚本内容
+
+```shell
+#!/bin/bash
+cd /var/spool && tar -zcf /home/mail-`date +%Y-%m-%d_%H:%M:%S`.tar.gz mail/
+```
+
+- **tar在打包时，如果打包目标是绝对路径时会出现警告`tar: 从成员名中删除开头的“/”`根本原因是因为打包时会把目录结构打进去，解包时也会把对应的目录结构解出来**
+- **通常建议相对路径打包，先cd到目标所在目录**
+
+```shell
+30 22 * * * /mnt/hgfs/share/test1.sh
+```
+
+![image-20210815075630061](C:\Users\Administrator\Desktop\Java\全栈\linux\linux.assets\image-20210815075630061.png)
+
+---
+
+Linux优化策略
+
+1. 不用root,使用sudo改变权限
+2. 定时自动更新服务
+3. 配置yum源,指向国内镜像
+4. 配置合理的防火墙策略,打开必要端口,关闭不必要端口
+5. 调整打开最大文件数`vim /etc/profile ulimit -SHn 65`
+6. 配置合理的监控策略
+7. 禁用不必要的服务setup
